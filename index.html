@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Projeto PDV</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header>
+        <h1>Projeto PDV</h1>
+    </header>
+
+    <main>
+        <!-- Cadastro de Clientes -->
+        <section id="clientes">
+            <h2>Cadastro de Clientes</h2>
+            <label>Nome do Cliente</label>
+            <input type="text" id="nomeCliente">
+
+            <label>Telefone</label>
+            <input type="text" id="telefoneCliente">
+
+            <button onclick="adicionarCliente()">Adicionar Cliente</button>
+        </section>
+
+        <!-- Cadastro de Produtos -->
+        <section id="produtos">
+            <h2>Cadastro de Produtos</h2>
+            <label>Nome do Produto</label>
+            <input type="text" id="nomeProduto">
+
+            <label>Preço</label>
+            <input type="number" id="precoProduto">
+
+            <label>Quantidade</label>
+            <input type="number" id="qtdProduto">
+
+            <button onclick="adicionarProduto()">Adicionar Produto</button>
+        </section>
+
+        <!-- PDV -->
+        <section id="pdv">
+            <h2>PDV</h2>
+            <label>Quantidade</label>
+            <input type="number" id="qtdVenda">
+
+            <button onclick="registrarVenda()">Registrar Venda</button>
+        </section>
+    </main>
+
+    <footer>
+        <p>© 2025 - Meu PDV</p>
+    </footer>
+</body>
