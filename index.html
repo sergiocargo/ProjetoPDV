@@ -5,41 +5,16 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Meu PDV</title>
   <style>
-    body { 
-      font-family: Arial, sans-serif; 
-      margin: 0; 
-      padding: 20px;
-      background-color: #f0f4f8;
-    }
-    h1 { text-align: center; color: #333; }
-    h2 { margin-top: 20px; color: #222; }
-    section { 
-      background-color: #fff;
-      padding: 15px; 
-      margin-bottom: 20px; 
-      border-radius: 10px;
-      box-shadow: 0 3px 6px rgba(0,0,0,0.1);
-    }
-    input, button, select { 
-      padding: 8px; 
-      margin: 5px 0; 
-      width: 100%; 
-      max-width: 300px; 
-      border-radius: 5px;
-      border: 1px solid #ccc;
-    }
-    button { 
-      background-color: #4CAF50; 
-      color: white; 
-      border: none; 
-      cursor: pointer; 
-    }
-    button:hover { background-color: #45a049; }
-    table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-    th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
-    @media(max-width:600px){
-      input, button, select { width: 100%; }
-    }
+    body { font-family: Arial, sans-serif; margin:0; padding:20px; background-color:#f0f4f8; }
+    h1 { text-align:center; color:#333; }
+    h2 { margin-top:20px; color:#222; }
+    section { background-color:#fff; padding:15px; margin-bottom:20px; border-radius:10px; box-shadow:0 3px 6px rgba(0,0,0,0.1); }
+    input, button, select { padding:8px; margin:5px 0; width:100%; max-width:300px; border-radius:5px; border:1px solid #ccc; }
+    button { background-color:#4CAF50; color:white; border:none; cursor:pointer; }
+    button:hover { background-color:#45a049; }
+    table { width:100%; border-collapse:collapse; margin-top:10px; }
+    th, td { border:1px solid #ccc; padding:8px; text-align:left; }
+    @media(max-width:600px){ input, button, select { width:100%; } }
   </style>
 </head>
 <body>
@@ -52,10 +27,9 @@
   <input type="text" id="clienteTelefone" placeholder="Telefone">
   <input type="number" id="clienteDias" placeholder="Dias para Pagamento">
   <button onclick="adicionarCliente()">Adicionar Cliente</button>
+  <button onclick="limparTudo()">Limpar Tudo</button>
   <table id="tabelaClientes">
-    <thead>
-      <tr><th>Nome</th><th>Telefone</th><th>Dias</th></tr>
-    </thead>
+    <thead><tr><th>Nome</th><th>Telefone</th><th>Dias</th><th>Ações</th></tr></thead>
     <tbody></tbody>
   </table>
 </section>
@@ -68,7 +42,132 @@
   <input type="number" id="produtoQtd" placeholder="Quantidade">
   <button onclick="adicionarProduto()">Adicionar Produto</button>
   <table id="tabelaProdutos">
-    <thead>
-      <tr><th>Código</th><th>Produto</th><th>Preço</th><th>Qtd</th></tr>
-    </thead>
-    <tbod
+    <thead><tr><th>Código</th><th>Produto</th><th>Preço</th><th>Qtd</th><th>Ações</th></tr></thead>
+    <tbody></tbody>
+  </table>
+</section>
+
+<section>
+  <h2>PDV</h2>
+  <input type="text" id="vendaCodigo" placeholder="Código de Barras (ou selecione abaixo)">
+  <select id="vendaProduto"></select>
+  <input type="number" id="vendaQtd" placeholder="Quantidade">
+  <button onclick="registrarVenda()">Registrar Venda</button>
+  <table id="tabelaVendas">
+    <thead><tr><th>Produto</th><th>Qtd</th><th>Total (R$)</th><th>Ações</th></tr></thead>
+    <tbody></tbody>
+  </table>
+</section>
+
+<script>
+// ===== Arrays =====
+let clientes = JSON.parse(localStorage.getItem("clientes")) || [];
+let produtos = JSON.parse(localStorage.getItem("produtos")) || [];
+let vendas = JSON.parse(localStorage.getItem("vendas")) || [];
+
+// ===== CLIENTES =====
+function adicionarCliente() {
+  const nome = document.getElementById("clienteNome").value.trim();
+  const telefone = document.getElementById("clienteTelefone").value.trim();
+  const dias = document.getElementById("clienteDias").value.trim();
+  if(!nome || !telefone || !dias){ alert("Preencha todos os campos do cliente!"); return; }
+  const idx = clientes.findIndex(c => c.nome === nome && c.telefone === telefone);
+  if (idx >= 0) {
+    clientes[idx] = { nome, telefone, dias };
+  } else {
+    clientes.push({ nome, telefone, dias });
+  }
+  localStorage.setItem("clientes", JSON.stringify(clientes)); // Certificando-se de que os dados estão salvos
+  atualizarTabelaClientes();
+  limparCamposCliente();
+}
+
+function atualizarTabelaClientes() {
+  const tbody = document.querySelector("#tabelaClientes tbody");
+  tbody.innerHTML = "";
+  clientes.forEach((c, i) => {
+    tbody.innerHTML += `<tr>
+      <td>${c.nome}</td>
+      <td>${c.telefone}</td>
+      <td>${c.dias}</td>
+      <td>
+        <button onclick="editarCliente(${i})">Editar</button>
+        <button onclick="excluirCliente(${i})">Excluir</button>
+      </td>
+    </tr>`;
+  });
+}
+
+function limparCamposCliente() {
+  document.getElementById("clienteNome").value = "";
+  document.getElementById("clienteTelefone").value = "";
+  document.getElementById("clienteDias").value = "";
+}
+
+function editarCliente(i) {
+  const c = clientes[i];
+  document.getElementById("clienteNome").value = c.nome;
+  document.getElementById("clienteTelefone").value = c.telefone;
+  document.getElementById("clienteDias").value = c.dias;
+}
+
+function excluirCliente(i) {
+  if (!confirm("Deseja realmente excluir este cliente?")) return;
+  clientes.splice(i, 1);
+  localStorage.setItem("clientes", JSON.stringify(clientes)); // Atualiza após exclusão
+  atualizarTabelaClientes();
+}
+
+// ===== PRODUTOS =====
+function adicionarProduto() {
+  const codigo = document.getElementById("produtoCodigo").value.trim();
+  const nome = document.getElementById("produtoNome").value.trim();
+  const preco = parseFloat(document.getElementById("produtoPreco").value);
+  const qtd = parseInt(document.getElementById("produtoQtd").value);
+  if (!codigo || !nome || isNaN(preco) || isNaN(qtd)) { alert("Preencha todos os campos do produto corretamente!"); return; }
+  const idx = produtos.findIndex(p => p.codigo === codigo);
+  if (idx >= 0) {
+    produtos[idx] = { codigo, nome, preco, qtd };
+  } else {
+    produtos.push({ codigo, nome, preco, qtd });
+  }
+  localStorage.setItem("produtos", JSON.stringify(produtos)); // Certificando-se de que os dados estão salvos
+  atualizarTabelaProdutos();
+  atualizarSelectProduto();
+  limparCamposProduto();
+}
+
+function atualizarTabelaProdutos() {
+  const tbody = document.querySelector("#tabelaProdutos tbody");
+  tbody.innerHTML = "";
+  produtos.forEach((p, i) => {
+    tbody.innerHTML += `<tr>
+      <td>${p.codigo}</td>
+      <td>${p.nome}</td>
+      <td>R$ ${p.preco.toFixed(2)}</td>
+      <td>${p.qtd}</td>
+      <td>
+        <button onclick="editarProduto(${i})">Editar</button>
+        <button onclick="excluirProduto(${i})">Excluir</button>
+      </td>
+    </tr>`;
+  });
+}
+
+function limparCamposProduto() {
+  document.getElementById("produtoCodigo").value = "";
+  document.getElementById("produtoNome").value = "";
+  document.getElementById("produtoPreco").value = "";
+  document.getElementById("produtoQtd").value = "";
+}
+
+function editarProduto(i) {
+  const p = produtos[i];
+  document.getElementById("produtoCodigo").value = p.codigo;
+  document.getElementById("produtoNome").value = p.nome;
+  document.getElementById("produtoPreco").value = p.preco;
+  document.getElementById("produtoQtd").value = p.qtd;
+}
+
+function excluirProduto(i) {
+  if (!
